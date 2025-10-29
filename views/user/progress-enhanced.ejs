@@ -1,0 +1,440 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-chart-line"></i> Progress Tracking</h1>
+                <p style="color: var(--text-secondary);">Visualize your fitness journey</p>
+            </div>
+            <div class="badge-advanced badge-success">
+                <i class="fas fa-fire"></i>
+                <%= user.currentStreak %> Day Streak
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="stats-grid-advanced" style="margin-bottom: 2rem;">
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: var(--gradient-primary);">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        7 Days
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Avg Daily Calories</div>
+                <div class="stat-value-large"><%= avgCalories %></div>
+                <div class="stat-progress">
+                    <div class="stat-progress-label">
+                        <span>Goal: <%= user.calorieGoal %> kcal</span>
+                        <span><%= Math.round((avgCalories / user.calorieGoal) * 100) %>%</span>
+                    </div>
+                    <div class="stat-progress-bar">
+                        <div class="stat-progress-fill" style="width: <%= Math.min((avgCalories / user.calorieGoal) * 100, 100) %>%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: var(--gradient-accent);">
+                        <i class="fas fa-fire-alt"></i>
+                    </div>
+                    <div class="badge-advanced badge-warning">
+                        Active
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Avg Calories Burned</div>
+                <div class="stat-value-large"><%= avgBurned %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <%= totalWorkouts %> workouts this week
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="badge-advanced badge-info">
+                        Record
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Longest Streak</div>
+                <div class="stat-value-large"><%= user.longestStreak %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <% if (user.currentStreak === user.longestStreak) { %>
+                        🎉 You're at your best!
+                    <% } else { %>
+                        Keep going to beat it!
+                    <% } %>
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-check"></i>
+                        <%= activeDays %>/7
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Active Days</div>
+                <div class="stat-value-large"><%= activeDays %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    This week
+                </p>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="dashboard-grid-advanced" style="grid-template-columns: 1fr;">
+            <!-- Calorie Trend Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">7-Day Calorie Trend</h2>
+                    <div class="chart-filters">
+                        <button class="chart-filter-btn active">Week</button>
+                    </div>
+                </div>
+                <canvas id="caloriesTrendChart" style="max-height: 350px;"></canvas>
+            </div>
+
+            <!-- Macronutrient Distribution -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Weekly Macronutrient Distribution</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;">
+                    <div>
+                        <canvas id="macroDistributionChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div>
+                        <div class="nutrition-grid" style="grid-template-columns: 1fr;">
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon protein">
+                                    <i class="fas fa-drumstick-bite"></i>
+                                </div>
+                                <div class="nutrition-value"><%= weeklyProtein %>g</div>
+                                <div class="nutrition-label">Total Protein</div>
+                                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                                    Avg: <%= Math.round(weeklyProtein / 7) %>g/day
+                                </p>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon carbs">
+                                    <i class="fas fa-bread-slice"></i>
+                                </div>
+                                <div class="nutrition-value"><%= weeklyCarbs %>g</div>
+                                <div class="nutrition-label">Total Carbs</div>
+                                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                                    Avg: <%= Math.round(weeklyCarbs / 7) %>g/day
+                                </p>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon fats">
+                                    <i class="fas fa-cheese"></i>
+                                </div>
+                                <div class="nutrition-value"><%= weeklyFats %>g</div>
+                                <div class="nutrition-label">Total Fats</div>
+                                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                                    Avg: <%= Math.round(weeklyFats / 7) %>g/day
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercise Activity Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Exercise Activity</h2>
+                </div>
+                <canvas id="exerciseChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div style="margin-top: 3rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Weekly Insights</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Calorie Consistency</h3>
+                    <p>
+                        <% if (avgCalories >= user.calorieGoal * 0.9 && avgCalories <= user.calorieGoal * 1.1) { %>
+                            Excellent! You're maintaining consistent calorie intake within your target range.
+                        <% } else if (avgCalories < user.calorieGoal * 0.9) { %>
+                            You're consuming fewer calories than your goal. Consider adding more nutritious foods.
+                        <% } else { %>
+                            You're slightly above your calorie goal. Try to balance your intake with more exercise.
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="insight-card">
+                    <i class="fas fa-fire"></i>
+                    <h3>Activity Level</h3>
+                    <p>
+                        <% if (totalWorkouts >= 5) { %>
+                            Outstanding! You're very active with <%= totalWorkouts %> workouts this week. Keep it up!
+                        <% } else if (totalWorkouts >= 3) { %>
+                            Good job! <%= totalWorkouts %> workouts this week. Try to add 1-2 more sessions.
+                        <% } else if (totalWorkouts > 0) { %>
+                            You've logged <%= totalWorkouts %> workout<%= totalWorkouts > 1 ? 's' : '' %>. Aim for at least 3-4 sessions per week.
+                        <% } else { %>
+                            No workouts logged this week. Start with light activities like walking or yoga.
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="insight-card">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Macro Balance</h3>
+                    <p>
+                        <% 
+                        const totalMacros = weeklyProtein + weeklyCarbs + weeklyFats;
+                        const proteinPercent = Math.round((weeklyProtein * 4 / (totalMacros * 4)) * 100);
+                        %>
+                        Your protein intake is <%= proteinPercent %>% of total macros. 
+                        <% if (proteinPercent >= 20 && proteinPercent <= 35) { %>
+                            Perfect balance for muscle maintenance!
+                        <% } else if (proteinPercent < 20) { %>
+                            Consider adding more protein-rich foods.
+                        <% } else { %>
+                            Good protein intake for muscle building!
+                        <% } %>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = isDark ? '#d1d5db' : '#6b7280';
+
+    const chartData = <%- JSON.stringify(chartData) %>;
+    const labels = chartData.map(d => {
+        const date = new Date(d.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+
+    // Calorie Trend Chart
+    const caloriesTrendCtx = document.getElementById('caloriesTrendChart').getContext('2d');
+    new Chart(caloriesTrendCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Calories Consumed',
+                    data: chartData.map(d => d.calories),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: isDark ? '#1f2937' : '#ffffff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'Calories Burned',
+                    data: chartData.map(d => d.burned),
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#f59e0b',
+                    pointBorderColor: isDark ? '#1f2937' : '#ffffff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'Goal',
+                    data: chartData.map(() => <%= user.calorieGoal %>),
+                    borderColor: '#3b82f6',
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: textColor,
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    borderColor: isDark ? '#374151' : 'transparent',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor
+                    },
+                    border: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            weight: '600'
+                        }
+                    },
+                    border: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Macro Distribution Chart
+    const macroCtx = document.getElementById('macroDistributionChart').getContext('2d');
+    new Chart(macroCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Protein', 'Carbs', 'Fats'],
+            datasets: [{
+                data: [<%= weeklyProtein %>, <%= weeklyCarbs %>, <%= weeklyFats %>],
+                backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'],
+                borderWidth: 3,
+                borderColor: isDark ? '#1f2937' : '#ffffff',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        color: textColor,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    borderColor: isDark ? '#374151' : 'transparent',
+                    borderWidth: 1
+                }
+            }
+        }
+    });
+
+    // Exercise Chart
+    const exerciseCtx = document.getElementById('exerciseChart').getContext('2d');
+    new Chart(exerciseCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Workout Duration (min)',
+                data: chartData.map(d => d.duration),
+                backgroundColor: 'rgba(139, 92, 246, 0.8)',
+                borderRadius: 12,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    borderColor: isDark ? '#374151' : 'transparent',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor
+                    },
+                    border: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            weight: '600'
+                        }
+                    },
+                    border: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

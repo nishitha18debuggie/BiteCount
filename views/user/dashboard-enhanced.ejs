@@ -1,0 +1,414 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1>Welcome back, <%= user.fullName %>! 👋</h1>
+                <p style="color: var(--text-secondary);">Here's your progress for today</p>
+            </div>
+            <div class="badge-advanced badge-success">
+                <i class="fas fa-fire"></i>
+                <%= user.currentStreak %> Day Streak
+            </div>
+        </div>
+
+        <!-- Enhanced Stats Grid -->
+        <div class="stats-grid-advanced">
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: var(--gradient-primary);">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <% 
+                    const percentageConsumed = Math.round((caloriesConsumed / calorieGoal) * 100);
+                    const isOnTrack = percentageConsumed <= 110 && percentageConsumed >= 90;
+                    %>
+                    <div class="stat-trend <%= isOnTrack ? '' : 'down' %>">
+                        <i class="fas fa-<%= isOnTrack ? 'check' : 'exclamation' %>"></i>
+                        <%= isOnTrack ? 'On Track' : percentageConsumed > 110 ? 'Over' : 'Under' %>
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Calories Consumed</div>
+                <div class="stat-value-large"><%= caloriesConsumed %></div>
+                <div class="stat-progress">
+                    <div class="stat-progress-label">
+                        <span>Goal: <%= calorieGoal %> kcal</span>
+                        <span><%= percentageConsumed %>%</span>
+                    </div>
+                    <div class="stat-progress-bar">
+                        <div class="stat-progress-fill" style="width: <%= Math.min(percentageConsumed, 100) %>%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: var(--gradient-accent);">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        Active
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Calories Burned</div>
+                <div class="stat-value-large"><%= caloriesBurned %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <%= exerciseLogs.length %> workout<%= exerciseLogs.length !== 1 ? 's' : '' %> today
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <div class="stat-trend <%= netCalories <= calorieGoal ? '' : 'down' %>">
+                        <i class="fas fa-<%= netCalories <= calorieGoal ? 'check' : 'exclamation' %>"></i>
+                        <%= netCalories <= calorieGoal ? 'Good' : 'High' %>
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Net Calories</div>
+                <div class="stat-value-large" style="color: <%= netCalories > calorieGoal ? 'var(--danger-color)' : 'var(--success-color)' %>">
+                    <%= netCalories %>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <%= netCalories <= calorieGoal ? 'Within target' : 'Above target' %>
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-header">
+                    <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);">
+                        <i class="fas fa-fire-alt"></i>
+                    </div>
+                    <div class="badge-advanced badge-warning">
+                        Best: <%= user.longestStreak %>
+                    </div>
+                </div>
+                <div class="stat-label-advanced">Current Streak</div>
+                <div class="stat-value-large"><%= user.currentStreak %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <% if (user.currentStreak >= 7) { %>
+                        🎉 Amazing! Keep it up!
+                    <% } else if (user.currentStreak >= 3) { %>
+                        💪 Great progress!
+                    <% } else { %>
+                        🌟 Building momentum!
+                    <% } %>
+                </p>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid-advanced">
+            <!-- Left Column -->
+            <div>
+                <!-- Macronutrients -->
+                <div class="chart-container" style="margin-bottom: 2rem;">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Today's Macronutrients</h2>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 2rem;">
+                        <div style="flex: 1;">
+                            <canvas id="macroChart" style="max-height: 250px;"></canvas>
+                        </div>
+                        <div class="nutrition-grid" style="flex: 1; grid-template-columns: 1fr;">
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon protein">
+                                    <i class="fas fa-drumstick-bite"></i>
+                                </div>
+                                <div class="nutrition-value"><%= totalProtein %>g</div>
+                                <div class="nutrition-label">Protein</div>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon carbs">
+                                    <i class="fas fa-bread-slice"></i>
+                                </div>
+                                <div class="nutrition-value"><%= totalCarbs %>g</div>
+                                <div class="nutrition-label">Carbs</div>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon fats">
+                                    <i class="fas fa-cheese"></i>
+                                </div>
+                                <div class="nutrition-value"><%= totalFats %>g</div>
+                                <div class="nutrition-label">Fats</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calorie Balance Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Calorie Balance</h2>
+                    </div>
+                    <canvas id="calorieChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Right Column - Activity Feed & Widgets -->
+            <div class="activity-feed">
+                <!-- Water Intake Widget -->
+                <div class="water-widget" style="margin-bottom: 2rem;">
+                    <div id="waterIntakeWidget"></div>
+                </div>
+
+                <!-- Daily Targets Widget -->
+                <div class="targets-widget" style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">
+                        <i class="fas fa-bullseye"></i> Daily Targets
+                    </h3>
+                    
+                    <div class="target-item">
+                        <div class="target-info">
+                            <div class="target-icon calories">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="target-details">
+                                <h4>Calories to Burn</h4>
+                                <div class="target-value"><%= caloriesBurned %> / <%= user.dailyTargets.caloriesBurn %> kcal</div>
+                            </div>
+                        </div>
+                        <div class="target-progress">
+                            <div class="target-progress-bar">
+                                <div class="target-progress-fill" style="width: <%= Math.min(caloriesBurnProgress, 100) %>%;"></div>
+                            </div>
+                            <div class="target-percentage"><%= caloriesBurnProgress %>%</div>
+                        </div>
+                    </div>
+
+                    <div class="target-item">
+                        <div class="target-info">
+                            <div class="target-icon water">
+                                <i class="fas fa-droplet"></i>
+                            </div>
+                            <div class="target-details">
+                                <h4>Water Intake</h4>
+                                <div class="target-value"><%= Math.round(waterProgress * user.dailyTargets.waterIntake / 100) %> / <%= user.dailyTargets.waterIntake %> glasses</div>
+                            </div>
+                        </div>
+                        <div class="target-progress">
+                            <div class="target-progress-bar">
+                                <div class="target-progress-fill" style="width: <%= Math.min(waterProgress, 100) %>%;"></div>
+                            </div>
+                            <div class="target-percentage"><%= waterProgress %>%</div>
+                        </div>
+                    </div>
+
+                    <a href="/user/achievements" class="btn-primary btn-block" style="margin-top: 1rem;">
+                        <i class="fas fa-trophy"></i> View Achievements
+                    </a>
+                </div>
+
+                <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Today's Activity</h2>
+                
+                <% if (foodLogs.length > 0 || exerciseLogs.length > 0) { %>
+                    <% 
+                    // Combine and sort activities by time
+                    const activities = [];
+                    foodLogs.forEach(log => {
+                        activities.push({
+                            type: 'food',
+                            name: log.foodName,
+                            details: `${log.mealType.charAt(0).toUpperCase() + log.mealType.slice(1)} • ${log.calories} kcal`,
+                            time: log.createdAt
+                        });
+                    });
+                    exerciseLogs.forEach(log => {
+                        activities.push({
+                            type: 'exercise',
+                            name: log.exerciseName,
+                            details: `${log.duration} min • ${log.caloriesBurned} kcal burned`,
+                            time: log.createdAt
+                        });
+                    });
+                    activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+                    %>
+                    
+                    <% activities.forEach(activity => { %>
+                        <div class="activity-item-advanced">
+                            <div class="activity-icon-wrapper <%= activity.type %>">
+                                <i class="fas fa-<%= activity.type === 'food' ? 'utensils' : 'dumbbell' %>"></i>
+                            </div>
+                            <div class="activity-details-advanced">
+                                <div class="activity-title"><%= activity.name %></div>
+                                <div class="activity-meta"><%= activity.details %></div>
+                            </div>
+                            <div class="activity-time-advanced">
+                                <%= new Date(activity.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+                        <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No activity logged today</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Start by logging your meals or exercises!</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="margin-top: 3rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Quick Actions</h2>
+            <div class="quick-actions-advanced">
+                <a href="/user/food-log" class="action-card-advanced">
+                    <div class="action-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3>Log Food</h3>
+                    <p>Add your meals</p>
+                </a>
+                <a href="/user/exercise-log" class="action-card-advanced">
+                    <div class="action-icon" style="background: var(--gradient-accent);">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <h3>Log Exercise</h3>
+                    <p>Track your workout</p>
+                </a>
+                <a href="/user/progress" class="action-card-advanced">
+                    <div class="action-icon" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>View Progress</h3>
+                    <p>See your trends</p>
+                </a>
+                <a href="/user/profile" class="action-card-advanced">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                        <i class="fas fa-user-cog"></i>
+                    </div>
+                    <h3>Update Profile</h3>
+                    <p>Manage your info</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Get theme-aware colors
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = isDark ? '#d1d5db' : '#6b7280';
+    
+    // Macro Pie Chart
+    const macroCtx = document.getElementById('macroChart').getContext('2d');
+    new Chart(macroCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Protein', 'Carbs', 'Fats'],
+            datasets: [{
+                data: [<%= totalProtein %>, <%= totalCarbs %>, <%= totalFats %>],
+                backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'],
+                borderWidth: 3,
+                borderColor: isDark ? '#1f2937' : '#ffffff',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    borderColor: isDark ? '#374151' : 'transparent',
+                    borderWidth: 1
+                }
+            }
+        }
+    });
+
+    // Calorie Bar Chart
+    const calorieCtx = document.getElementById('calorieChart').getContext('2d');
+    new Chart(calorieCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Consumed', 'Burned', 'Net', 'Goal'],
+            datasets: [{
+                label: 'Calories',
+                data: [<%= caloriesConsumed %>, <%= caloriesBurned %>, <%= netCalories %>, <%= calorieGoal %>],
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(59, 130, 246, 0.8)'
+                ],
+                borderRadius: 12,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    borderColor: isDark ? '#374151' : 'transparent',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    border: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            weight: '600',
+                            size: 12
+                        }
+                    },
+                    border: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Update charts on theme change
+    window.addEventListener('themeChanged', () => {
+        location.reload();
+    });
+</script>
+
+<!-- Water Intake Widget -->
+<script src="/js/waterIntake.js"></script>
+
+<%- include('../partials/footer') %>

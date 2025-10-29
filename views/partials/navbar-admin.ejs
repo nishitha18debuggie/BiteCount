@@ -1,0 +1,30 @@
+<nav class="navbar navbar-admin">
+    <div class="container">
+        <div class="nav-brand">
+            <a href="/admin/dashboard">
+                <img src="/images/logo.png" alt="BiteCount Logo" class="nav-logo">
+                BiteCount Admin
+            </a>
+        </div>
+        <button class="nav-toggle" id="navToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-menu" id="navMenu">
+            <li><a href="/admin/dashboard" class="<%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/admin/users" class="<%= typeof currentPage !== 'undefined' && currentPage === 'users' ? 'active' : '' %>"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="/admin/foods" class="<%= typeof currentPage !== 'undefined' && currentPage === 'foods' ? 'active' : '' %>"><i class="fas fa-apple-alt"></i> Foods</a></li>
+            <li><a href="/admin/reports" class="<%= typeof currentPage !== 'undefined' && currentPage === 'reports' ? 'active' : '' %>"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="/admin/contacts" class="<%= typeof currentPage !== 'undefined' && currentPage === 'contacts' ? 'active' : '' %>"><i class="fas fa-envelope"></i> Contacts</a></li>
+            <li>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <div class="theme-toggle-slider">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </button>
+            </li>
+            <li><a href="/logout" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+</nav>

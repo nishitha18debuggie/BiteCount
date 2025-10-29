@@ -1,0 +1,411 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-user-circle"></i> Your Profile</h1>
+                <p style="color: var(--text-secondary);">Manage your account and personal information</p>
+            </div>
+        </div>
+
+        <% if (success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success %>
+            </div>
+        <% } %>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <ul>
+                    <% errors.forEach(error => { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <!-- Profile Grid -->
+        <div class="dashboard-grid-advanced">
+            <!-- Personal Information -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Personal Information</h2>
+                </div>
+                
+                <form action="/user/profile" method="POST" class="profile-form-enhanced">
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Full Name</label>
+                        <input type="text" name="fullName" class="form-input-advanced" 
+                            value="<%= user.fullName %>" required>
+                    </div>
+
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Email Address</label>
+                        <input type="email" class="form-input-advanced" 
+                            value="<%= user.email %>" disabled>
+                        <small style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.5rem; display: block;">
+                            <i class="fas fa-lock"></i> Email cannot be changed
+                        </small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Age</label>
+                            <input type="number" name="age" class="form-input-advanced" 
+                                value="<%= user.age %>" min="13" max="120" required>
+                        </div>
+
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Gender</label>
+                            <select name="gender" class="form-input-advanced" disabled>
+                                <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Male</option>
+                                <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Female</option>
+                                <option value="other" <%= user.gender === 'other' ? 'selected' : '' %>>Other</option>
+                            </select>
+                            <small style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.5rem; display: block;">
+                                <i class="fas fa-lock"></i> Gender cannot be changed
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Height (cm)</label>
+                            <input type="number" name="height" class="form-input-advanced" 
+                                value="<%= user.height %>" min="50" max="300" step="0.1" required>
+                        </div>
+
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Weight (kg)</label>
+                            <input type="number" name="weight" class="form-input-advanced" 
+                                value="<%= user.weight %>" min="20" max="500" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Activity Level</label>
+                        <select name="activityLevel" class="form-input-advanced" required>
+                            <option value="sedentary" <%= user.activityLevel === 'sedentary' ? 'selected' : '' %>>
+                                😴 Sedentary (little or no exercise)
+                            </option>
+                            <option value="lightly_active" <%= user.activityLevel === 'lightly_active' ? 'selected' : '' %>>
+                                🚶 Lightly Active (exercise 1-3 days/week)
+                            </option>
+                            <option value="moderately_active" <%= user.activityLevel === 'moderately_active' ? 'selected' : '' %>>
+                                🏃 Moderately Active (exercise 3-5 days/week)
+                            </option>
+                            <option value="very_active" <%= user.activityLevel === 'very_active' ? 'selected' : '' %>>
+                                💪 Very Active (exercise 6-7 days/week)
+                            </option>
+                            <option value="extremely_active" <%= user.activityLevel === 'extremely_active' ? 'selected' : '' %>>
+                                🔥 Extremely Active (intense exercise daily)
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Health Condition (Optional)</label>
+                        <input type="text" name="healthCondition" class="form-input-advanced" 
+                            value="<%= user.healthCondition %>" placeholder="e.g., Diabetes, Hypertension, None">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Health Metrics -->
+                <div class="chart-container" style="margin-bottom: 2rem;">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Health Metrics</h2>
+                    </div>
+                    
+                    <% 
+                    const heightInMeters = user.height / 100;
+                    const bmi = (user.weight / (heightInMeters * heightInMeters)).toFixed(1);
+                    let bmiCategory = '';
+                    let bmiColor = '';
+                    if (bmi < 18.5) {
+                        bmiCategory = 'Underweight';
+                        bmiColor = '#3b82f6';
+                    } else if (bmi < 25) {
+                        bmiCategory = 'Normal';
+                        bmiColor = '#10b981';
+                    } else if (bmi < 30) {
+                        bmiCategory = 'Overweight';
+                        bmiColor = '#f59e0b';
+                    } else {
+                        bmiCategory = 'Obese';
+                        bmiColor = '#ef4444';
+                    }
+                    const bmr = Math.round(user.calculateBMR());
+                    const tdee = user.calculateTDEE();
+                    %>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card-enhanced">
+                            <div class="metric-icon" style="background: <%= bmiColor %>;">
+                                <i class="fas fa-weight"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Body Mass Index</div>
+                                <div class="metric-value-enhanced"><%= bmi %></div>
+                                <div class="badge-advanced" style="background: <%= bmiColor %>20; color: <%= bmiColor %>; margin-top: 0.5rem;">
+                                    <%= bmiCategory %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card-enhanced">
+                            <div class="metric-icon" style="background: var(--gradient-primary);">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Basal Metabolic Rate</div>
+                                <div class="metric-value-enhanced"><%= bmr %></div>
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                                    kcal/day at rest
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card-enhanced">
+                            <div class="metric-icon" style="background: var(--gradient-accent);">
+                                <i class="fas fa-fire-alt"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Total Daily Energy</div>
+                                <div class="metric-value-enhanced"><%= tdee %></div>
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                                    kcal/day with activity
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box" style="margin-top: 1.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <p style="margin-bottom: 0.5rem;"><strong>BMR:</strong> Calories burned at complete rest</p>
+                            <p><strong>TDEE:</strong> Total calories needed based on your activity level</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Stats -->
+                <div class="chart-container" style="margin-bottom: 2rem;">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Account Stats</h2>
+                    </div>
+                    
+                    <div class="stats-list-enhanced">
+                        <div class="stat-item-enhanced">
+                            <div class="stat-item-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div>
+                                <div class="stat-item-label">Member Since</div>
+                                <div class="stat-item-value">
+                                    <%= new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item-enhanced">
+                            <div class="stat-item-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger-color);">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div>
+                                <div class="stat-item-label">Current Streak</div>
+                                <div class="stat-item-value"><%= user.currentStreak %> days</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item-enhanced">
+                            <div class="stat-item-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div>
+                                <div class="stat-item-label">Longest Streak</div>
+                                <div class="stat-item-value"><%= user.longestStreak %> days</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item-enhanced">
+                            <div class="stat-item-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--info-color);">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div>
+                                <div class="stat-item-label">Daily Calorie Goal</div>
+                                <div class="stat-item-value"><%= user.calorieGoal %> kcal</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Change Password</h2>
+                    </div>
+                    
+                    <form id="changePasswordForm" class="password-form-enhanced">
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Current Password</label>
+                            <input type="password" name="currentPassword" class="form-input-advanced" required>
+                        </div>
+
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">New Password</label>
+                            <input type="password" name="newPassword" class="form-input-advanced" minlength="6" required>
+                        </div>
+
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Confirm New Password</label>
+                            <input type="password" name="confirmPassword" class="form-input-advanced" minlength="6" required>
+                        </div>
+
+                        <div id="passwordMessage" class="alert" style="display: none;"></div>
+
+                        <button type="submit" class="btn-primary btn-block">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-form-enhanced,
+.password-form-enhanced {
+    margin-top: 1.5rem;
+}
+
+.metrics-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.metric-card-enhanced {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.metric-value-enhanced {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.stats-list-enhanced {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.stat-item-enhanced {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.stat-item-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-item-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-item-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+</style>
+
+<script>
+    // Change Password Form Handler
+    document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const messageDiv = document.getElementById('passwordMessage');
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+
+        try {
+            const response = await fetch('/user/profile/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                messageDiv.className = 'alert alert-success';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
+                messageDiv.style.display = 'block';
+                e.target.reset();
+            } else {
+                messageDiv.className = 'alert alert-error';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + 
+                    (result.errors ? result.errors.map(e => e.msg).join(', ') : 'Error changing password');
+                messageDiv.style.display = 'block';
+            }
+        } catch (error) {
+            messageDiv.className = 'alert alert-error';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred';
+            messageDiv.style.display = 'block';
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

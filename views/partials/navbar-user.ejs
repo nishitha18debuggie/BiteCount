@@ -1,0 +1,31 @@
+<nav class="navbar navbar-user">
+    <div class="container">
+        <div class="nav-brand">
+            <a href="/user/dashboard">
+                <img src="/images/logo.png" alt="BiteCount Logo" class="nav-logo">
+                BiteCount
+            </a>
+        </div>
+        <button class="nav-toggle" id="navToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-menu" id="navMenu">
+            <li><a href="/user/dashboard" class="<%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/user/food-log" class="<%= typeof currentPage !== 'undefined' && currentPage === 'food-log' ? 'active' : '' %>"><i class="fas fa-utensils"></i> Log Food</a></li>
+            <li><a href="/user/exercise-log" class="<%= typeof currentPage !== 'undefined' && currentPage === 'exercise-log' ? 'active' : '' %>"><i class="fas fa-dumbbell"></i> Exercise</a></li>
+            <li><a href="/user/progress" class="<%= typeof currentPage !== 'undefined' && currentPage === 'progress' ? 'active' : '' %>"><i class="fas fa-chart-line"></i> Progress</a></li>
+            <li><a href="/user/achievements" class="<%= typeof currentPage !== 'undefined' && currentPage === 'achievements' ? 'active' : '' %>"><i class="fas fa-trophy"></i> Achievements</a></li>
+            <li><a href="/user/profile" class="<%= typeof currentPage !== 'undefined' && currentPage === 'profile' ? 'active' : '' %>"><i class="fas fa-user"></i> Profile</a></li>
+            <li>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <div class="theme-toggle-slider">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </button>
+            </li>
+            <li><a href="/logout" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+</nav>

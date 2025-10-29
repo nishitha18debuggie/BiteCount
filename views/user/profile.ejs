@@ -1,0 +1,243 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-user"></i> Your Profile</h1>
+            <p>Manage your account and personal information</p>
+        </div>
+
+        <% if (success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success %>
+            </div>
+        <% } %>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <ul>
+                    <% errors.forEach(error => { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <div class="profile-grid">
+            <!-- Profile Information -->
+            <div class="dashboard-card">
+                <h2>Personal Information</h2>
+                <form action="/user/profile" method="POST" class="profile-form">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" value="<%= user.fullName %>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" value="<%= user.email %>" disabled>
+                        <small>Email cannot be changed</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" value="<%= user.age %>" min="13" max="120" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" disabled>
+                                <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Male</option>
+                                <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Female</option>
+                                <option value="other" <%= user.gender === 'other' ? 'selected' : '' %>>Other</option>
+                            </select>
+                            <small>Gender cannot be changed</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="height">Height (cm)</label>
+                            <input type="number" id="height" name="height" value="<%= user.height %>" min="50" max="300" step="0.1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="weight">Weight (kg)</label>
+                            <input type="number" id="weight" name="weight" value="<%= user.weight %>" min="20" max="500" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="activityLevel">Activity Level</label>
+                        <select id="activityLevel" name="activityLevel" required>
+                            <option value="sedentary" <%= user.activityLevel === 'sedentary' ? 'selected' : '' %>>Sedentary (little or no exercise)</option>
+                            <option value="lightly_active" <%= user.activityLevel === 'lightly_active' ? 'selected' : '' %>>Lightly Active (exercise 1-3 days/week)</option>
+                            <option value="moderately_active" <%= user.activityLevel === 'moderately_active' ? 'selected' : '' %>>Moderately Active (exercise 3-5 days/week)</option>
+                            <option value="very_active" <%= user.activityLevel === 'very_active' ? 'selected' : '' %>>Very Active (exercise 6-7 days/week)</option>
+                            <option value="extremely_active" <%= user.activityLevel === 'extremely_active' ? 'selected' : '' %>>Extremely Active (intense exercise daily)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="healthCondition">Health Condition (Optional)</label>
+                        <input type="text" id="healthCondition" name="healthCondition" value="<%= user.healthCondition %>" placeholder="e.g., Diabetes, Hypertension, None">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+
+            <!-- Account Stats & Security -->
+            <div class="profile-sidebar">
+                <!-- Account Stats -->
+                <div class="dashboard-card">
+                    <h2>Account Stats</h2>
+                    <div class="stats-list">
+                        <div class="stat-item">
+                            <i class="fas fa-calendar"></i>
+                            <div>
+                                <h4>Member Since</h4>
+                                <p><%= new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) %></p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <i class="fas fa-fire"></i>
+                            <div>
+                                <h4>Current Streak</h4>
+                                <p><%= user.currentStreak %> days</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <div>
+                                <h4>Longest Streak</h4>
+                                <p><%= user.longestStreak %> days</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <i class="fas fa-bullseye"></i>
+                            <div>
+                                <h4>Daily Calorie Goal</h4>
+                                <p><%= user.calorieGoal %> kcal</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Metrics -->
+                <div class="dashboard-card">
+                    <h2>Health Metrics</h2>
+                    <div class="metrics-list">
+                        <div class="metric-item">
+                            <h4>BMI</h4>
+                            <% 
+                            const heightInMeters = user.height / 100;
+                            const bmi = (user.weight / (heightInMeters * heightInMeters)).toFixed(1);
+                            let bmiCategory = '';
+                            if (bmi < 18.5) bmiCategory = 'Underweight';
+                            else if (bmi < 25) bmiCategory = 'Normal';
+                            else if (bmi < 30) bmiCategory = 'Overweight';
+                            else bmiCategory = 'Obese';
+                            %>
+                            <p class="metric-value"><%= bmi %></p>
+                            <p class="metric-label"><%= bmiCategory %></p>
+                        </div>
+
+                        <div class="metric-item">
+                            <h4>BMR</h4>
+                            <p class="metric-value"><%= Math.round(user.calculateBMR()) %></p>
+                            <p class="metric-label">kcal/day</p>
+                        </div>
+
+                        <div class="metric-item">
+                            <h4>TDEE</h4>
+                            <p class="metric-value"><%= user.calculateTDEE() %></p>
+                            <p class="metric-label">kcal/day</p>
+                        </div>
+                    </div>
+                    <small class="metric-note">
+                        <i class="fas fa-info-circle"></i>
+                        BMR = Basal Metabolic Rate, TDEE = Total Daily Energy Expenditure
+                    </small>
+                </div>
+
+                <!-- Change Password -->
+                <div class="dashboard-card">
+                    <h2>Change Password</h2>
+                    <form id="changePasswordForm" class="password-form">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" name="newPassword" minlength="6" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required>
+                        </div>
+
+                        <div id="passwordMessage" class="alert" style="display: none;"></div>
+
+                        <button type="submit" class="btn-primary btn-block">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Change Password Form Handler
+    document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const messageDiv = document.getElementById('passwordMessage');
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+
+        try {
+            const response = await fetch('/user/profile/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                messageDiv.className = 'alert alert-success';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
+                messageDiv.style.display = 'block';
+                e.target.reset();
+            } else {
+                messageDiv.className = 'alert alert-error';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + 
+                    (result.errors ? result.errors.map(e => e.msg).join(', ') : 'Error changing password');
+                messageDiv.style.display = 'block';
+            }
+        } catch (error) {
+            messageDiv.className = 'alert alert-error';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred';
+            messageDiv.style.display = 'block';
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

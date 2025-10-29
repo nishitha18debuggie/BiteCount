@@ -1,0 +1,219 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-chart-line"></i> Your Progress</h1>
+            <p>Track your journey and celebrate your achievements</p>
+        </div>
+
+        <!-- Streak & Achievements -->
+        <div class="achievements-section">
+            <div class="achievement-card">
+                <div class="achievement-icon streak">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="achievement-content">
+                    <h3>Current Streak</h3>
+                    <p class="achievement-value"><%= user.currentStreak %> days</p>
+                    <p class="achievement-label">Keep it going! 🔥</p>
+                </div>
+            </div>
+
+            <div class="achievement-card">
+                <div class="achievement-icon trophy">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="achievement-content">
+                    <h3>Longest Streak</h3>
+                    <p class="achievement-value"><%= user.longestStreak %> days</p>
+                    <p class="achievement-label">Personal best!</p>
+                </div>
+            </div>
+
+            <div class="achievement-card">
+                <div class="achievement-icon target">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <div class="achievement-content">
+                    <h3>Daily Goal</h3>
+                    <p class="achievement-value"><%= user.calorieGoal %> kcal</p>
+                    <p class="achievement-label">Your target</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Charts -->
+        <div class="progress-charts">
+            <div class="dashboard-card">
+                <h2>7-Day Calorie Trend</h2>
+                <canvas id="weeklyChart"></canvas>
+            </div>
+
+            <div class="dashboard-card">
+                <h2>Daily Activity Overview</h2>
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Weekly Summary -->
+        <div class="dashboard-card">
+            <h2>Weekly Summary</h2>
+            <div class="weekly-summary">
+                <% 
+                let totalConsumed = 0;
+                let totalBurned = 0;
+                chartData.forEach(day => {
+                    totalConsumed += day.consumed;
+                    totalBurned += day.burned;
+                });
+                const avgConsumed = Math.round(totalConsumed / 7);
+                const avgBurned = Math.round(totalBurned / 7);
+                %>
+                
+                <div class="summary-stat">
+                    <i class="fas fa-utensils"></i>
+                    <div>
+                        <h4>Average Calories Consumed</h4>
+                        <p class="summary-value"><%= avgConsumed %> kcal/day</p>
+                    </div>
+                </div>
+
+                <div class="summary-stat">
+                    <i class="fas fa-fire"></i>
+                    <div>
+                        <h4>Average Calories Burned</h4>
+                        <p class="summary-value"><%= avgBurned %> kcal/day</p>
+                    </div>
+                </div>
+
+                <div class="summary-stat">
+                    <i class="fas fa-balance-scale"></i>
+                    <div>
+                        <h4>Average Net Calories</h4>
+                        <p class="summary-value"><%= avgConsumed - avgBurned %> kcal/day</p>
+                    </div>
+                </div>
+
+                <div class="summary-stat">
+                    <i class="fas fa-chart-line"></i>
+                    <div>
+                        <h4>Goal Adherence</h4>
+                        <p class="summary-value"><%= Math.round((avgConsumed / user.calorieGoal) * 100) %>%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motivational Section -->
+        <div class="motivation-section">
+            <div class="motivation-card">
+                <i class="fas fa-star"></i>
+                <h3>Keep Up the Great Work!</h3>
+                <p>You're making progress every day. Remember, consistency is key to achieving your health goals.</p>
+                <% if (user.currentStreak >= 7) { %>
+                    <p class="motivation-highlight">🎉 Amazing! You've maintained a 7-day streak!</p>
+                <% } else if (user.currentStreak >= 3) { %>
+                    <p class="motivation-highlight">💪 Great job! You're building a healthy habit!</p>
+                <% } else { %>
+                    <p class="motivation-highlight">🌟 Every journey starts with a single step!</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const chartData = <%- JSON.stringify(chartData) %>;
+    const labels = chartData.map(d => {
+        const date = new Date(d.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const consumed = chartData.map(d => d.consumed);
+    const burned = chartData.map(d => d.burned);
+    const net = chartData.map(d => d.net);
+
+    // Weekly Trend Chart
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Consumed',
+                    data: consumed,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Burned',
+                    data: burned,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Goal',
+                    data: Array(7).fill(<%= user.calorieGoal %>),
+                    borderColor: '#6366f1',
+                    borderDash: [5, 5],
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Activity Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    new Chart(activityCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Net Calories',
+                    data: net,
+                    backgroundColor: net.map(val => val > <%= user.calorieGoal %> ? '#ef4444' : '#10b981'),
+                    borderRadius: 8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

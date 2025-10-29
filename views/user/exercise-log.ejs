@@ -1,0 +1,164 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-dumbbell"></i> Exercise Log</h1>
+            <p>Track your workouts and calories burned</p>
+        </div>
+
+        <% if (success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success %>
+            </div>
+        <% } %>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <ul>
+                    <% errors.forEach(error => { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <div class="exercise-log-grid">
+            <!-- Log Exercise Form -->
+            <div class="dashboard-card">
+                <h2>Log Your Workout</h2>
+                <form action="/user/exercise-log" method="POST" class="exercise-form">
+                    <div class="form-group">
+                        <label for="exerciseName">Exercise Type</label>
+                        <select id="exerciseName" name="exerciseName" required>
+                            <option value="">Choose an exercise...</option>
+                            <option value="Running">Running</option>
+                            <option value="Walking">Walking</option>
+                            <option value="Cycling">Cycling</option>
+                            <option value="Swimming">Swimming</option>
+                            <option value="Weight Training">Weight Training</option>
+                            <option value="Yoga">Yoga</option>
+                            <option value="Pilates">Pilates</option>
+                            <option value="Dancing">Dancing</option>
+                            <option value="Basketball">Basketball</option>
+                            <option value="Football">Football</option>
+                            <option value="Tennis">Tennis</option>
+                            <option value="Badminton">Badminton</option>
+                            <option value="Jump Rope">Jump Rope</option>
+                            <option value="Hiking">Hiking</option>
+                            <option value="Rowing">Rowing</option>
+                            <option value="Elliptical">Elliptical</option>
+                            <option value="Stair Climbing">Stair Climbing</option>
+                            <option value="Boxing">Boxing</option>
+                            <option value="Martial Arts">Martial Arts</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">Duration (minutes)</label>
+                        <input type="number" id="duration" name="duration" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="intensity">Intensity Level</label>
+                        <select id="intensity" name="intensity" required>
+                            <option value="">Select intensity...</option>
+                            <option value="low">Low (Light effort, can talk easily)</option>
+                            <option value="moderate">Moderate (Some effort, can hold conversation)</option>
+                            <option value="high">High (Hard effort, difficult to talk)</option>
+                        </select>
+                    </div>
+
+                    <div id="calorieEstimate" class="calorie-estimate" style="display: none;">
+                        <i class="fas fa-fire"></i>
+                        <p>Estimated calories burned: <strong><span id="estimatedCalories">0</span> kcal</strong></p>
+                        <small>Based on your weight (<%= user.weight %> kg) and selected intensity</small>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">
+                        <i class="fas fa-plus"></i> Log Exercise
+                    </button>
+                </form>
+            </div>
+
+            <!-- Exercise Guide -->
+            <div class="dashboard-card">
+                <h2><i class="fas fa-info-circle"></i> Exercise Guide</h2>
+                
+                <div class="intensity-guide">
+                    <h3>Intensity Levels</h3>
+                    <div class="intensity-item">
+                        <span class="intensity-badge low">Low</span>
+                        <p>Light activities like walking, gentle yoga, or stretching</p>
+                    </div>
+                    <div class="intensity-item">
+                        <span class="intensity-badge moderate">Moderate</span>
+                        <p>Activities like brisk walking, cycling, or swimming at steady pace</p>
+                    </div>
+                    <div class="intensity-item">
+                        <span class="intensity-badge high">High</span>
+                        <p>Intense activities like running, HIIT, or competitive sports</p>
+                    </div>
+                </div>
+
+                <div class="exercise-tips">
+                    <h3>Tips for Effective Workouts</h3>
+                    <ul>
+                        <li>Always warm up before exercising</li>
+                        <li>Stay hydrated throughout your workout</li>
+                        <li>Listen to your body and rest when needed</li>
+                        <li>Consistency is more important than intensity</li>
+                        <li>Mix cardio and strength training for best results</li>
+                    </ul>
+                </div>
+
+                <div class="weekly-goal">
+                    <h3>Recommended Activity</h3>
+                    <p>Adults should aim for:</p>
+                    <ul>
+                        <li>150 minutes of moderate exercise per week</li>
+                        <li>OR 75 minutes of vigorous exercise per week</li>
+                        <li>Plus strength training 2+ days per week</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Calculate estimated calories burned
+    const userWeight = <%= user.weight %>;
+    const durationInput = document.getElementById('duration');
+    const intensityInput = document.getElementById('intensity');
+    const estimateDiv = document.getElementById('calorieEstimate');
+    const estimatedCaloriesSpan = document.getElementById('estimatedCalories');
+
+    function updateCalorieEstimate() {
+        const duration = parseInt(durationInput.value) || 0;
+        const intensity = intensityInput.value;
+
+        if (duration > 0 && intensity) {
+            const multipliers = {
+                low: 3,
+                moderate: 5,
+                high: 8
+            };
+
+            const calories = Math.round(duration * multipliers[intensity] * (userWeight / 70));
+            estimatedCaloriesSpan.textContent = calories;
+            estimateDiv.style.display = 'block';
+        } else {
+            estimateDiv.style.display = 'none';
+        }
+    }
+
+    durationInput.addEventListener('input', updateCalorieEstimate);
+    intensityInput.addEventListener('change', updateCalorieEstimate);
+</script>
+
+<%- include('../partials/footer') %>

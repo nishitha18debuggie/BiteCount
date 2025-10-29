@@ -1,0 +1,152 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-utensils"></i> Food Log</h1>
+            <p>Track your meals and monitor your nutrition</p>
+        </div>
+
+        <% if (success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success %>
+            </div>
+        <% } %>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <ul>
+                    <% errors.forEach(error => { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <div class="food-log-grid">
+            <!-- Log Food Form -->
+            <div class="dashboard-card">
+                <h2>Log a Meal</h2>
+                <form action="/user/food-log" method="POST" class="food-form">
+                    <div class="form-group">
+                        <label for="foodId">Select Food</label>
+                        <select id="foodId" name="foodId" required>
+                            <option value="">Choose a food...</option>
+                            <% foods.forEach(food => { %>
+                                <option value="<%= food._id %>" 
+                                        data-calories="<%= food.calories %>"
+                                        data-protein="<%= food.protein %>"
+                                        data-carbs="<%= food.carbs %>"
+                                        data-fats="<%= food.fats %>">
+                                    <%= food.name %> (<%= food.calories %> kcal per <%= food.servingSize %>)
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mealType">Meal Type</label>
+                        <select id="mealType" name="mealType" required>
+                            <option value="">Select meal type...</option>
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                            <option value="snack">Snack</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="portion">Portion Size (servings)</label>
+                        <input type="number" id="portion" name="portion" step="0.1" min="0.1" value="1" required>
+                    </div>
+
+                    <div id="nutritionPreview" class="nutrition-preview" style="display: none;">
+                        <h4>Nutrition Preview:</h4>
+                        <p><strong>Calories:</strong> <span id="previewCalories">0</span> kcal</p>
+                        <p><strong>Protein:</strong> <span id="previewProtein">0</span>g</p>
+                        <p><strong>Carbs:</strong> <span id="previewCarbs">0</span>g</p>
+                        <p><strong>Fats:</strong> <span id="previewFats">0</span>g</p>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">
+                        <i class="fas fa-plus"></i> Log Food
+                    </button>
+                </form>
+
+                <div class="divider">OR</div>
+
+                <button type="button" class="btn-outline btn-block" id="addCustomFoodBtn">
+                    <i class="fas fa-plus-circle"></i> Add Custom Food
+                </button>
+            </div>
+
+            <!-- Custom Food Modal (hidden by default) -->
+            <div id="customFoodModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add Custom Food</h2>
+                        <button class="modal-close" id="closeCustomModal">&times;</button>
+                    </div>
+                    <form id="customFoodForm">
+                        <div class="form-group">
+                            <label for="customName">Food Name</label>
+                            <input type="text" id="customName" name="name" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customCalories">Calories</label>
+                                <input type="number" id="customCalories" name="calories" step="0.1" min="0" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="customProtein">Protein (g)</label>
+                                <input type="number" id="customProtein" name="protein" step="0.1" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customCarbs">Carbs (g)</label>
+                                <input type="number" id="customCarbs" name="carbs" step="0.1" min="0" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="customFats">Fats (g)</label>
+                                <input type="number" id="customFats" name="fats" step="0.1" min="0" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-block">
+                            <i class="fas fa-save"></i> Save Custom Food
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="dashboard-card tips-card">
+                <h2><i class="fas fa-lightbulb"></i> Tips</h2>
+                <ul class="tips-list">
+                    <li>Log your meals as soon as you eat them for better accuracy</li>
+                    <li>Use the portion size to adjust servings (e.g., 0.5 for half serving)</li>
+                    <li>Add custom foods if you can't find them in the database</li>
+                    <li>Try to distribute your calories evenly throughout the day</li>
+                    <li>Don't forget to log snacks and beverages!</li>
+                </ul>
+
+                <div class="calorie-goal">
+                    <h3>Your Daily Goal</h3>
+                    <p class="goal-value"><%= user.calorieGoal %> kcal</p>
+                    <p class="goal-label">Based on your profile</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/food-log.js"></script>
+<%- include('../partials/footer') %>

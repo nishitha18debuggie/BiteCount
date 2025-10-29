@@ -1,0 +1,373 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-dumbbell"></i> Exercise Log</h1>
+                <p style="color: var(--text-secondary);">Track your workouts and calories burned</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div class="badge-advanced badge-warning">
+                    <i class="fas fa-calendar-day"></i>
+                    <%= new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                </div>
+            </div>
+        </div>
+
+        <% if (success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success %>
+            </div>
+        <% } %>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <ul>
+                    <% errors.forEach(error => { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <!-- Today's Summary Cards -->
+        <div class="stats-grid-advanced" style="margin-bottom: 2rem;">
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: var(--gradient-accent); margin-bottom: 1rem;">
+                    <i class="fas fa-fire-alt"></i>
+                </div>
+                <div class="stat-label-advanced">Calories Burned</div>
+                <div class="stat-value-large"><%= totalCaloriesBurned %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    Today's total
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); margin-bottom: 1rem;">
+                    <i class="fas fa-running"></i>
+                </div>
+                <div class="stat-label-advanced">Workouts</div>
+                <div class="stat-value-large"><%= exerciseLogs.length %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    Sessions completed
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); margin-bottom: 1rem;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-label-advanced">Total Time</div>
+                <div class="stat-value-large"><%= totalDuration %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    Minutes active
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-bottom: 1rem;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-label-advanced">Avg Intensity</div>
+                <div class="stat-value-large">
+                    <%= exerciseLogs.length > 0 ? Math.round(totalCaloriesBurned / totalDuration) : 0 %>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    kcal/min
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid-advanced">
+            <!-- Log Exercise Form -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Log New Exercise</h2>
+                </div>
+
+                <form action="/user/exercise-log" method="POST" class="exercise-form-enhanced">
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Exercise Type</label>
+                        <select name="exerciseName" class="form-input-advanced" required>
+                            <option value="">Choose an exercise...</option>
+                            <optgroup label="🏃 Cardio">
+                                <option value="Running">Running</option>
+                                <option value="Jogging">Jogging</option>
+                                <option value="Walking">Walking</option>
+                                <option value="Cycling">Cycling</option>
+                                <option value="Swimming">Swimming</option>
+                                <option value="Jump Rope">Jump Rope</option>
+                                <option value="Dancing">Dancing</option>
+                            </optgroup>
+                            <optgroup label="💪 Strength">
+                                <option value="Weight Training">Weight Training</option>
+                                <option value="Bodyweight Exercises">Bodyweight Exercises</option>
+                                <option value="CrossFit">CrossFit</option>
+                                <option value="Powerlifting">Powerlifting</option>
+                            </optgroup>
+                            <optgroup label="🧘 Flexibility & Mind">
+                                <option value="Yoga">Yoga</option>
+                                <option value="Pilates">Pilates</option>
+                                <option value="Stretching">Stretching</option>
+                                <option value="Meditation">Meditation</option>
+                            </optgroup>
+                            <optgroup label="⚽ Sports">
+                                <option value="Basketball">Basketball</option>
+                                <option value="Football">Football</option>
+                                <option value="Tennis">Tennis</option>
+                                <option value="Badminton">Badminton</option>
+                                <option value="Cricket">Cricket</option>
+                            </optgroup>
+                            <optgroup label="🎯 Other">
+                                <option value="HIIT">HIIT</option>
+                                <option value="Aerobics">Aerobics</option>
+                                <option value="Zumba">Zumba</option>
+                                <option value="Boxing">Boxing</option>
+                                <option value="Martial Arts">Martial Arts</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Duration (minutes)</label>
+                            <input type="number" name="duration" class="form-input-advanced" 
+                                min="1" required placeholder="30">
+                        </div>
+
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Intensity</label>
+                            <select name="intensity" class="form-input-advanced" required>
+                                <option value="low">😌 Low</option>
+                                <option value="moderate" selected>💪 Moderate</option>
+                                <option value="high">🔥 High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Notes (Optional)</label>
+                        <textarea name="notes" class="form-input-advanced" rows="3" 
+                            placeholder="How did you feel? Any achievements?"></textarea>
+                    </div>
+
+                    <!-- Calorie Estimate Info -->
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Calories burned will be calculated based on your weight, duration, and intensity level.</p>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block" style="margin-top: 1.5rem;">
+                        <i class="fas fa-plus-circle"></i> Log Exercise
+                    </button>
+                </form>
+            </div>
+
+            <!-- Today's Workouts -->
+            <div class="activity-feed">
+                <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Today's Workouts</h2>
+                
+                <% if (exerciseLogs.length > 0) { %>
+                    <% exerciseLogs.forEach(log => { 
+                        const intensityColors = {
+                            low: 'rgba(16, 185, 129, 0.1)',
+                            moderate: 'rgba(245, 158, 11, 0.1)',
+                            high: 'rgba(239, 68, 68, 0.1)'
+                        };
+                        const intensityIcons = {
+                            low: '😌',
+                            moderate: '💪',
+                            high: '🔥'
+                        };
+                    %>
+                        <div class="exercise-card">
+                            <div class="exercise-header">
+                                <div class="exercise-icon" style="background: <%= intensityColors[log.intensity] %>;">
+                                    <span style="font-size: 1.5rem;"><%= intensityIcons[log.intensity] %></span>
+                                </div>
+                                <div class="exercise-info">
+                                    <div class="exercise-name"><%= log.exerciseName %></div>
+                                    <div class="exercise-meta">
+                                        <span><i class="fas fa-clock"></i> <%= log.duration %> min</span>
+                                        <span><i class="fas fa-fire"></i> <%= log.caloriesBurned %> kcal</span>
+                                        <span style="text-transform: capitalize;">
+                                            <i class="fas fa-tachometer-alt"></i> <%= log.intensity %>
+                                        </span>
+                                    </div>
+                                    <% if (log.notes) { %>
+                                        <div class="exercise-notes">
+                                            <i class="fas fa-sticky-note"></i> <%= log.notes %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <form action="/user/exercise-log/delete/<%= log._id %>" method="POST">
+                                <button type="submit" class="btn-danger btn-sm" onclick="return confirm('Delete this exercise log?');">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+                        <i class="fas fa-dumbbell" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No workouts logged today</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Start tracking your exercises!</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Quick Exercise Suggestions -->
+        <% if (exerciseLogs.length === 0) { %>
+        <div style="margin-top: 3rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Quick Start Suggestions</h2>
+            <div class="quick-actions-advanced">
+                <div class="action-card-advanced" onclick="selectExercise('Running', 30, 'moderate')">
+                    <div class="action-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <h3>30 min Run</h3>
+                    <p>Moderate intensity</p>
+                </div>
+                <div class="action-card-advanced" onclick="selectExercise('Weight Training', 45, 'high')">
+                    <div class="action-icon" style="background: var(--gradient-accent);">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <h3>45 min Weights</h3>
+                    <p>High intensity</p>
+                </div>
+                <div class="action-card-advanced" onclick="selectExercise('Yoga', 30, 'low')">
+                    <div class="action-icon" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-spa"></i>
+                    </div>
+                    <h3>30 min Yoga</h3>
+                    <p>Low intensity</p>
+                </div>
+                <div class="action-card-advanced" onclick="selectExercise('HIIT', 20, 'high')">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);">
+                        <i class="fas fa-fire-alt"></i>
+                    </div>
+                    <h3>20 min HIIT</h3>
+                    <p>High intensity</p>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.exercise-form-enhanced {
+    margin-top: 1.5rem;
+}
+
+.info-box {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 4px solid var(--info-color);
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-top: 1.5rem;
+}
+
+.info-box i {
+    color: var(--info-color);
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.info-box p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.exercise-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: all var(--transition-fast);
+}
+
+.exercise-card:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(5px);
+}
+
+.exercise-header {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+}
+
+.exercise-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.exercise-info {
+    flex: 1;
+}
+
+.exercise-name {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.exercise-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.exercise-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.exercise-notes {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    font-style: italic;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+</style>
+
+<script>
+function selectExercise(name, duration, intensity) {
+    document.querySelector('select[name="exerciseName"]').value = name;
+    document.querySelector('input[name="duration"]').value = duration;
+    document.querySelector('select[name="intensity"]').value = intensity;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+<%- include('../partials/footer') %>

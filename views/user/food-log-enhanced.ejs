@@ -1,0 +1,342 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-user') %>
+
+<div class="dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-utensils"></i> Food Log</h1>
+                <p style="color: var(--text-secondary);">Track your meals and nutrition</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div class="badge-advanced badge-info">
+                    <i class="fas fa-calendar-day"></i>
+                    <%= new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                </div>
+            </div>
+        </div>
+
+        <% if (success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success %>
+            </div>
+        <% } %>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <ul>
+                    <% errors.forEach(error => { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <!-- Today's Summary Cards -->
+        <div class="stats-grid-advanced" style="margin-bottom: 2rem;">
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: var(--gradient-primary); margin-bottom: 1rem;">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="stat-label-advanced">Total Calories</div>
+                <div class="stat-value-large"><%= totalCalories %></div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <%= foodLogs.length %> meal<%= foodLogs.length !== 1 ? 's' : '' %> logged
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); margin-bottom: 1rem;">
+                    <i class="fas fa-drumstick-bite"></i>
+                </div>
+                <div class="stat-label-advanced">Protein</div>
+                <div class="stat-value-large"><%= totalProtein %>g</div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    <%= Math.round((totalProtein / (user.weight * 1.6)) * 100) %>% of target
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); margin-bottom: 1rem;">
+                    <i class="fas fa-bread-slice"></i>
+                </div>
+                <div class="stat-label-advanced">Carbs</div>
+                <div class="stat-value-large"><%= totalCarbs %>g</div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    Energy source
+                </p>
+            </div>
+
+            <div class="stat-card-advanced">
+                <div class="stat-icon-advanced" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); margin-bottom: 1rem;">
+                    <i class="fas fa-cheese"></i>
+                </div>
+                <div class="stat-label-advanced">Fats</div>
+                <div class="stat-value-large"><%= totalFats %>g</div>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                    Essential nutrients
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid-advanced">
+            <!-- Log Food Form -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Log New Meal</h2>
+                    <button class="btn-outline btn-sm" id="addCustomFoodBtn">
+                        <i class="fas fa-plus"></i> Custom Food
+                    </button>
+                </div>
+
+                <form action="/user/food-log" method="POST" class="food-form-enhanced">
+                    <div class="form-group-advanced">
+                        <label class="form-label-advanced">Select Food</label>
+                        <select id="foodId" name="foodId" class="form-input-advanced" required>
+                            <option value="">Choose a food item...</option>
+                            <% foods.forEach(food => { %>
+                                <option value="<%= food._id %>" 
+                                    data-calories="<%= food.calories %>"
+                                    data-protein="<%= food.protein %>"
+                                    data-carbs="<%= food.carbs %>"
+                                    data-fats="<%= food.fats %>">
+                                    <%= food.name %> (<%= food.calories %> kcal per <%= food.servingSize %>)
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Meal Type</label>
+                            <select name="mealType" class="form-input-advanced" required>
+                                <option value="breakfast">🌅 Breakfast</option>
+                                <option value="lunch">☀️ Lunch</option>
+                                <option value="dinner">🌙 Dinner</option>
+                                <option value="snack">🍪 Snack</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group-advanced">
+                            <label class="form-label-advanced">Portion Size</label>
+                            <input type="number" id="portion" name="portion" class="form-input-advanced" 
+                                step="0.1" min="0.1" value="1" required placeholder="1.0">
+                        </div>
+                    </div>
+
+                    <!-- Nutrition Preview -->
+                    <div id="nutritionPreview" class="nutrition-preview" style="display: none;">
+                        <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Nutrition Preview</h4>
+                        <div class="nutrition-grid">
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <div class="nutrition-value" id="previewCalories">0</div>
+                                <div class="nutrition-label">Calories</div>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon protein">
+                                    <i class="fas fa-drumstick-bite"></i>
+                                </div>
+                                <div class="nutrition-value" id="previewProtein">0</div>
+                                <div class="nutrition-label">Protein (g)</div>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon carbs">
+                                    <i class="fas fa-bread-slice"></i>
+                                </div>
+                                <div class="nutrition-value" id="previewCarbs">0</div>
+                                <div class="nutrition-label">Carbs (g)</div>
+                            </div>
+                            <div class="nutrition-card">
+                                <div class="nutrition-icon fats">
+                                    <i class="fas fa-cheese"></i>
+                                </div>
+                                <div class="nutrition-value" id="previewFats">0</div>
+                                <div class="nutrition-label">Fats (g)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block" style="margin-top: 1.5rem;">
+                        <i class="fas fa-plus-circle"></i> Log Food
+                    </button>
+                </form>
+            </div>
+
+            <!-- Today's Meals -->
+            <div class="activity-feed">
+                <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Today's Meals</h2>
+                
+                <% if (foodLogs.length > 0) { %>
+                    <% 
+                    const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+                    const mealIcons = {
+                        breakfast: '🌅',
+                        lunch: '☀️',
+                        dinner: '🌙',
+                        snack: '🍪'
+                    };
+                    
+                    mealTypes.forEach(mealType => {
+                        const meals = foodLogs.filter(log => log.mealType === mealType);
+                        if (meals.length > 0) {
+                    %>
+                        <div style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <span><%= mealIcons[mealType] %></span>
+                                <span style="text-transform: capitalize;"><%= mealType %></span>
+                                <span class="badge-advanced badge-info" style="font-size: 0.75rem;">
+                                    <%= meals.reduce((sum, m) => sum + m.calories, 0) %> kcal
+                                </span>
+                            </h3>
+                            <% meals.forEach(log => { %>
+                                <div class="meal-card">
+                                    <div class="meal-info">
+                                        <div class="meal-name"><%= log.foodName %></div>
+                                        <div class="meal-meta">
+                                            <span><i class="fas fa-fire"></i> <%= log.calories %> kcal</span>
+                                            <span><i class="fas fa-drumstick-bite"></i> <%= log.protein %>g Protein</span>
+                                            <span><i class="fas fa-bread-slice"></i> <%= log.carbs %>g Carbs</span>
+                                            <span><i class="fas fa-cheese"></i> <%= log.fats %>g Fats</span>
+                                        </div>
+                                        <div class="meal-portion">Portion: <%= log.portion %>x</div>
+                                    </div>
+                                    <form action="/user/food-log/delete/<%= log._id %>" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn-danger btn-sm" onclick="return confirm('Delete this food log?');">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% 
+                        }
+                    });
+                    %>
+                <% } else { %>
+                    <div style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+                        <i class="fas fa-utensils" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No meals logged today</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Start tracking your nutrition!</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Food Modal -->
+<div id="customFoodModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add Custom Food</h2>
+            <button class="modal-close" id="closeCustomModal">&times;</button>
+        </div>
+        <form id="customFoodForm">
+            <div class="form-group-advanced">
+                <label class="form-label-advanced">Food Name</label>
+                <input type="text" name="name" class="form-input-advanced" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group-advanced">
+                    <label class="form-label-advanced">Calories</label>
+                    <input type="number" name="calories" class="form-input-advanced" step="0.1" min="0" required>
+                </div>
+                <div class="form-group-advanced">
+                    <label class="form-label-advanced">Protein (g)</label>
+                    <input type="number" name="protein" class="form-input-advanced" step="0.1" min="0" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group-advanced">
+                    <label class="form-label-advanced">Carbs (g)</label>
+                    <input type="number" name="carbs" class="form-input-advanced" step="0.1" min="0" required>
+                </div>
+                <div class="form-group-advanced">
+                    <label class="form-label-advanced">Fats (g)</label>
+                    <input type="number" name="fats" class="form-input-advanced" step="0.1" min="0" required>
+                </div>
+            </div>
+
+            <div class="form-group-advanced">
+                <label class="form-label-advanced">Serving Size</label>
+                <input type="text" name="servingSize" class="form-input-advanced" value="100g">
+            </div>
+
+            <button type="submit" class="btn-primary btn-block">
+                <i class="fas fa-plus"></i> Add Custom Food
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+.food-form-enhanced {
+    margin-top: 1.5rem;
+}
+
+.nutrition-preview {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.meal-card {
+    background: var(--bg-secondary);
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all var(--transition-fast);
+}
+
+.meal-card:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(5px);
+}
+
+.meal-info {
+    flex: 1;
+}
+
+.meal-name {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.meal-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.meal-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.meal-portion {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+</style>
+
+<script src="/js/food-log.js"></script>
+<%- include('../partials/footer') %>

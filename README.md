@@ -1,3 +1,3 @@
 # BiteCount
 
-A nutrition tracking and gamified fitness web app.
+A nutrition calorie tracking and fitness web app.
